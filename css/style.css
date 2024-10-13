@@ -618,8 +618,10 @@ a {
 @keyframes fade {
   0% {
     opacity: 0.5;
+    left: -40px;
   }
   100% {
     opacity: 1;
+    left: 0;
   }
 }
