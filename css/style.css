@@ -386,7 +386,7 @@ a {
 .menu .container {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  /* align-items: flex-start; */
 }
 .menu .title {
   text-align: center;
@@ -399,7 +399,8 @@ a {
 }
 .menu__item {
   width: 320px;
-  min-height: 450px;
+  height: 100%;
+  /* min-height: 450px; */
   background: #fff;
   box-shadow: 0 4px 25px rgba(0, 0, 0, 0.25);
   font-size: 16px;
@@ -550,15 +551,17 @@ a {
   top: 0;
   left: 0;
   z-index: 1050;
-  display: none;
+  /* display: none; */
   width: 100%;
   height: 100%;
   overflow: hidden;
   background-color: rgba(0, 0, 0, 0.5);
+  cursor: pointer;
 }
 .modal__dialog {
   max-width: 500px;
   margin: 40px auto;
+  cursor: default;
 }
 .modal__content {
   position: relative;
