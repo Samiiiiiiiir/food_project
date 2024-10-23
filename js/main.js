@@ -68,7 +68,7 @@ tabHeaderWrapper.addEventListener('click', (event) => {
 
 /* - - - - - - - - - - - - - - Timer - - - - - - - - - - - - - - */
 
-const DEADLINE = '2024-10-20';
+const DEADLINE = '2024-10-30';
 
 function calcTimeDifference(deadline) {
   const difference = Date.parse(deadline) - new Date();
@@ -178,23 +178,20 @@ setTimer('.timer', DEADLINE); */
 /* - - - - - - - - - - - - - - Modal - - - - - - - - - - - - - - */
 
 const modal = document.querySelector('.modal'),
-  modalOpenButtons = document.querySelectorAll('[data-modal]'),
-  modalCloseButton = document.querySelector('[data-close]');
+  modalOpenButtons = document.querySelectorAll('[data-modal]');
 
 modalOpenButtons.forEach((btn) => {
   btn.addEventListener('click', openModal);
 });
 
-modalCloseButton.addEventListener('click', closeModal);
-
 function closeModal() {
-  modal.classList.toggle('hidden');
+  modal.classList.add('hidden');
   document.body.style.overflow = '';
   console.log('close');
 }
 
 modal.addEventListener('click', (event) => {
-  if (event.target.matches('.modal')) {
+  if (event.target.matches('.modal') || event.target.matches('[data-close]')) {
     closeModal();
   }
 });
@@ -206,9 +203,9 @@ window.addEventListener('keydown', (e) => {
 });
 
 function openModal() {
-  modal.classList.toggle('hidden');
+  modal.classList.remove('hidden');
   document.body.style.overflow = 'hidden';
-  clearInterval(openModalTimeoutId);
+  // clearInterval(openModalTimeoutId);
 }
 
 // const openModalTimeoutId = setTimeout(openModal, 4000);
@@ -226,13 +223,14 @@ function showModalByScroll() {
 /* - - - - - - - - - - - - - - Cards - - - - - - - - - - - - - - */
 
 class Card {
-  constructor(src, alt, title, desc, price, parentSelector) {
+  constructor(src, alt, title, desc, price, parentSelector, ...classes) {
     this.imageSource = src;
     this.alt = alt;
     this.title = title;
     this.desc = desc;
     this.price = price;
     this.parentSelector = parentSelector;
+    this.classes = classes;
     this.transfer = 27;
     this.changeToUAH(); // вызвали существующий метод
   }
@@ -242,9 +240,14 @@ class Card {
 
   render() {
     const div = document.createElement('div');
-    // this.changeToUAH();
+    if (this.classes.length) {
+      this.classes.forEach((className) => {
+        div.classList.add(className);
+      });
+    } else {
+      div.classList.add('menu__item');
+    }
     div.innerHTML = `
-        <div class="menu__item">
           <img src=${this.imageSource} alt=${this.alt} />
           <h3 class="menu__item-subtitle">${this.title}</h3>
           <div class="menu__item-descr">
@@ -255,7 +258,6 @@ class Card {
             <div class="menu__item-cost">Цена:</div>
             <div class="menu__item-total"><span>${this.price}</span> грн/день</div>
           </div>
-        </div>
     `;
     document.querySelector(this.parentSelector).append(div);
   }
@@ -269,7 +271,10 @@ new Card(
               свежих овощей и фруктов. Продукт активных и здоровых людей. Это
               абсолютно новый продукт с оптимальной ценой и высоким качеством!`,
   '10',
-  '.menu__field .container'
+  '.menu__field .container',
+  'menu__item',
+  'class1',
+  'class2'
 ).render();
 
 new Card(
@@ -294,3 +299,107 @@ new Card(
   '20',
   '.menu__field .container'
 ).render();
+
+/* - - - - - - - - - - - - - - Form - - - - - - - - - - - - - - */
+
+const forms = document.querySelectorAll('form');
+const message = {
+  loading: './img/form/spinner.svg',
+  success: 'Скоро мы с вами свяжемся.',
+  failure: 'Что-то пошло не так',
+};
+
+/* function postData(form) {
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const statusMessage = document.createElement('div');
+    statusMessage.textContent = message.loading;
+    form.append(statusMessage);
+
+    const request = new XMLHttpRequest();
+    request.open('POST', 'server.php');
+    const formData = new FormData(form); // получим объект с данными из формы, которую передаем как аргумент
+    // У input, textarea, option - ВСЕГДА ДОЛЖЕН БЫТЬ УКАЗАН АТРИБУТ name. Иначе FormData не найдет этот инпут
+
+    const object = {};
+    formData.forEach((value, key) => {
+      object[key] = value;
+    });
+    request.send(JSON.stringify(object));
+
+    request.addEventListener('load', () => {
+      if (request.status === 200) {
+        console.log(request.response);
+        statusMessage.textContent = message.success;
+        form.reset();
+        setTimeout(() => {
+          statusMessage.remove();
+        }, 2000);
+      } else {
+        statusMessage.textContent = message.failure;
+      }
+    });
+  });
+}
+
+forms.forEach((form) => {
+  postData(form);
+}); */
+
+function postData(form) {
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const request = new XMLHttpRequest();
+    request.open('POST', 'server.php');
+    const formData = new FormData(form);
+    const obj = {};
+    formData.forEach((value, key) => {
+      obj[key] = value;
+    });
+    request.send(JSON.stringify(obj));
+
+    const spinner = document.createElement('img');
+    spinner.src = message.loading;
+    spinner.classList.add('centered');
+    form.after(spinner);
+
+    request.addEventListener('load', () => {
+      if (request.status === 200) {
+        form.reset();
+        showThanksModal(message.success);
+        // console.log(request.response);
+      } else {
+        showThanksModal(message.failure);
+      }
+      spinner.remove();
+    });
+  });
+}
+
+forms.forEach((form) => {
+  postData(form);
+});
+
+function showThanksModal(message) {
+  const previousModalDialog = document.querySelector('.modal__dialog');
+  previousModalDialog.classList.add('hidden');
+  openModal();
+  const thanksModal = document.createElement('div');
+  thanksModal.classList.add('modal__dialog');
+  thanksModal.innerHTML = `
+  <div class="modal__content">
+  <div class="modal__close" data-close="">×</div>
+    <div class="modal__title">
+      ${message}
+    </div>
+  </div>
+  `;
+  document.querySelector('.modal').append(thanksModal);
+
+  setTimeout(() => {
+    thanksModal.remove();
+    previousModalDialog.classList.remove('hidden');
+    closeModal();
+  }, 5000);
+}

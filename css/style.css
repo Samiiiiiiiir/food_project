@@ -156,8 +156,8 @@ a {
   position: relative;
 }
 .tabcontent img {
-  width: 100%;
-  height: 100%;
+  /*   width: 100%;
+  height: 100%; */
   object-fit: cover;
 }
 .tabcontent__descr {
@@ -627,4 +627,10 @@ a {
     opacity: 1;
     left: 0;
   }
+}
+
+.centered {
+  display: block;
+  margin-top: 10px;
+  margin-inline: auto;
 }
