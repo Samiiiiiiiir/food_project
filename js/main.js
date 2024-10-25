@@ -350,30 +350,39 @@ forms.forEach((form) => {
 function postData(form) {
   form.addEventListener('submit', (e) => {
     e.preventDefault();
-    const request = new XMLHttpRequest();
-    request.open('POST', 'server.php');
-    const formData = new FormData(form);
-    const obj = {};
-    formData.forEach((value, key) => {
-      obj[key] = value;
-    });
-    request.send(JSON.stringify(obj));
 
     const spinner = document.createElement('img');
     spinner.src = message.loading;
     spinner.classList.add('centered');
     form.after(spinner);
 
-    request.addEventListener('load', () => {
-      if (request.status === 200) {
-        form.reset();
-        showThanksModal(message.success);
-        // console.log(request.response);
-      } else {
-        showThanksModal(message.failure);
-      }
-      spinner.remove();
+    const formData = new FormData(form);
+
+    const obj = {};
+    formData.forEach((value, key) => {
+      obj[key] = value;
     });
+
+    fetch('server.ph2p', {
+      method: 'POST',
+      headers: {
+        'Content-type': 'application/json',
+      },
+      body: JSON.stringify(obj),
+    })
+      .then((data) => data.text())
+      .then((data) => {
+        // data - те данные, что возвращаются из промиса т.е. ответ от сервера.
+        console.log(data);
+        showThanksModal(message.success);
+        spinner.remove();
+      })
+      .catch(() => {
+        showThanksModal(message.failure);
+      })
+      .finally(() => {
+        form.reset();
+      });
   });
 }
 
@@ -403,3 +412,7 @@ function showThanksModal(message) {
     closeModal();
   }, 5000);
 }
+
+fetch('http://localhost:3000/menu')
+  .then((data) => data.json())
+  .then((res) => console.log(res));
