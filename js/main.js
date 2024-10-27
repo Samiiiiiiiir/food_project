@@ -1,5 +1,7 @@
 // window.addEventListener('DOMContentLoaded', () => { });
 
+/* - - - - - - - - - - - - - - Tabs - - - - - - - - - - - - - - */
+
 const tabHeaderWrapper = document.querySelector('.tabheader__items'),
   tabsContent = document.querySelectorAll('.tabcontent'),
   tabsHeader = document.querySelectorAll('.tabheader__item');
@@ -35,7 +37,6 @@ function showTab(index = 2) {
 hideTabs();
 showTab(); */
 
-/* - - - - - - - - - - - - - - Tabs - - - - - - - - - - - - - - */
 function hideTabContent() {
   tabsContent.forEach((item) => {
     item.classList.add('hidden');
@@ -229,7 +230,6 @@ class Card {
     this.title = title;
     this.desc = desc;
     this.price = price;
-    this.parentSelector = parentSelector;
     this.classes = classes;
     this.transfer = 27;
     this.changeToUAH(); // вызвали существующий метод
@@ -259,47 +259,53 @@ class Card {
             <div class="menu__item-total"><span>${this.price}</span> грн/день</div>
           </div>
     `;
-    document.querySelector(this.parentSelector).append(div);
+    document.querySelector('.menu__field .container').append(div);
   }
 }
 
-new Card(
-  'img/tabs/vegy.jpg',
-  'vegy',
-  'Меню "Фитнес"',
-  `Меню "Фитнес" - это новый подход к приготовлению блюд: больше
-              свежих овощей и фруктов. Продукт активных и здоровых людей. Это
-              абсолютно новый продукт с оптимальной ценой и высоким качеством!`,
-  '10',
-  '.menu__field .container',
-  'menu__item',
-  'class1',
-  'class2'
-).render();
+const getResource = async (url) => {
+  const req = await fetch(url);
+  if (!req.ok) {
+    throw new Error(`Could not fetch ${url}, status: ${res.status}`);
+  }
+  return await req.json();
+};
+getResource('http://localhost:3000/menu').then((data) => {
+  data.forEach(({ img, altimg, title, descr, price }) => {
+    new Card(img, altimg, title, descr, price).render();
+  });
+});
 
-new Card(
-  'img/tabs/elite.jpg',
-  'elite',
-  'Меню “Премиум”',
-  `В меню “Премиум” мы используем не только красивый дизайн упаковки,
-              но и качественное исполнение блюд. Красная рыба, морепродукты,
-              фрукты - ресторанное меню без похода в ресторан!`,
-  '15',
-  '.menu__field .container'
-).render();
+axios.get('http://localhost:3000/menu').then((response) => {
+  response.data.forEach(({ img, altimg, title, descr, price }) => {
+    new Card(img, altimg, title, descr, price).render();
+  });
+});
 
-new Card(
-  'img/tabs/post.jpg',
-  'post',
-  'Меню "Постное"',
-  `Меню “Постное” - это тщательный подбор ингредиентов: полное
-              отсутствие продуктов животного происхождения, молоко из миндаля,
-              овса, кокоса или гречки, правильное количество белков за счет тофу
-              и импортных вегетарианских стейков.`,
-  '20',
-  '.menu__field .container'
-).render();
-
+/* 
+getResource('http://localhost:3000/menu').then((data) => createCards(data));
+function createCards(data) {
+  data.forEach(({ img, altimg, title, descr, price }) => {
+    const element = document.createElement('div');
+    element.classList.add('menu__item');
+    element.innerHTML = `
+          <img src=${img} alt=${altimg} />
+          <h3 class="menu__item-subtitle">${title}</h3>
+          <div class="menu__item-descr">
+            ${descr}
+          </div>
+          <div class="menu__item-divider"></div>
+          <div class="menu__item-price">
+            <div class="menu__item-cost">Цена:</div>
+            <div class="menu__item-total"><span>${
+              price * 40
+            }</span> грн/день</div>
+          </div>
+    `;
+    document.querySelector('.menu__field .container').append(element);
+  });
+}
+ */
 /* - - - - - - - - - - - - - - Form - - - - - - - - - - - - - - */
 
 const forms = document.querySelectorAll('form');
@@ -347,7 +353,19 @@ forms.forEach((form) => {
   postData(form);
 }); */
 
-function postData(form) {
+const postData = async (url, data) => {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-type': 'application/json',
+    },
+    body: data,
+  });
+  return await res.json(); // т.к. не знаем сколько времени
+  // понадобится чтобы перевести в обычный объект
+};
+
+function bindPostData(form) {
   form.addEventListener('submit', (e) => {
     e.preventDefault();
 
@@ -358,19 +376,9 @@ function postData(form) {
 
     const formData = new FormData(form);
 
-    const obj = {};
-    formData.forEach((value, key) => {
-      obj[key] = value;
-    });
+    const json = JSON.stringify(Object.fromEntries(formData.entries()));
 
-    fetch('server.ph2p', {
-      method: 'POST',
-      headers: {
-        'Content-type': 'application/json',
-      },
-      body: JSON.stringify(obj),
-    })
-      .then((data) => data.text())
+    postData('http://localhost:3000/requests', json)
       .then((data) => {
         // data - те данные, что возвращаются из промиса т.е. ответ от сервера.
         console.log(data);
@@ -387,7 +395,7 @@ function postData(form) {
 }
 
 forms.forEach((form) => {
-  postData(form);
+  bindPostData(form);
 });
 
 function showThanksModal(message) {
@@ -416,3 +424,5 @@ function showThanksModal(message) {
 fetch('http://localhost:3000/menu')
   .then((data) => data.json())
   .then((res) => console.log(res));
+
+/* - - - - - - - - - - - - - - Slider - - - - - - - - - - - - - - */
